@@ -1,8 +1,11 @@
+import sys
+sys.path.insert(0, "")
+
 class Plugin:
     # The name of the plugin. This string will be displayed in the Plugin menu
-    name = "Template Plugin"
+    name = "Performance Presets"
     # The name of the plugin author
-    author = "Template Author"
+    author = "TrainDoctor"
 
     # If the plugin should be reloaded from a call to /plugins/reload or a file change
     hot_reload = False
