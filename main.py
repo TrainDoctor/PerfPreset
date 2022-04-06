@@ -15,7 +15,7 @@ class Plugin:
 
     # The HTML file that will be used to display a widget in the plugin main page
     # Comment this out if you don't plan to use a tile view. This will make a button with your plugin name appear
-    tile_view_html = "tile_view.html"
+    tile_view_html = ""
 
     # A normal method. It can be called from JavaScript using call_plugin_function("method_1", argument1, argument2)
     async def method_1(self, *args):
