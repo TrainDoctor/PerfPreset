@@ -1,7 +1,6 @@
 import collections
 import os,sys,shutil,subprocess
 import tempfile
-from PerfPresets.vdf import vdict
 
 sys.path.insert(0, os.getcwd()+"/vdf")
 print(sys.path[0])
@@ -28,10 +27,9 @@ class Plugin:
     
     temp_config = "/dev/null"
 
-    #
     async def get_perfsettings(self, *args):
         vdf_obj = vdf.parse(open(Plugin.temp_config), mapper=collections.OrderedDict)
-        return vdict.VDFDict.get("perf")
+        return vdf.VDFDict.get("perf")
 
     # Return true if a game is currently active, else return false
     async def game_active(self, *args):
