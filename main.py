@@ -1,11 +1,5 @@
-import collections
-import os,sys,shutil,subprocess
+import os,shutil,subprocess
 import tempfile
-
-sys.path.insert(0, os.getcwd()+"/vdf")
-print(sys.path[0])
-
-import vdf
 
 class Plugin:
     # The name of the plugin. This string will be displayed in the Plugin menu
@@ -27,27 +21,6 @@ class Plugin:
     
     temp_config = "/dev/null"
 
-    async def get_perfsettings(self, *args):
-        vdf_obj = vdf.parse(open(Plugin.temp_config), mapper=collections.OrderedDict)
-        return vdf.VDFDict.get("perf")
-
-    # Return true if a game is currently active, else return false
-    async def game_active(self, *args):
-        pass
-    
-    async def save_preset(self, *args):
-        pass
-    
-    async def load_preset(self, *args):
-        pass
-    
-    async def delete_preset(self, *args):
-        pass
-
-    # A normal method. It can be called from JavaScript using call_plugin_function("method_2", argument1, argument2)
-    # async def method_2(self, *args):
-    #     pass
-
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def __main(self):
         steam_directory = "/home/deck/.local/share/Steam/"
@@ -60,4 +33,4 @@ class Plugin:
         if Plugin.first_run:
             shutil.copy(steam_directory+config_file,steam_directory+config_file+".bak") # preserve a backup of our original file jic
         Plugin.temp_config = temp.name
-        
+    pass
