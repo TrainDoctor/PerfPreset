@@ -2,27 +2,19 @@ import os,shutil,subprocess
 import tempfile
 
 class Plugin:
-    # The name of the plugin. This string will be displayed in the Plugin menu
-    name = "Performance Presets"
-    # The name of the plugin author 
-    author = "TrainDoctor"
+    # A normal method. It can be called from JavaScript using call_plugin_function("method_1", argument1, argument2)
+    async def method_1(self, *args):
+        pass
 
-    # If the plugin should be reloaded from a call to /plugins/reload or a file change
-    hot_reload = False
-
-    # The HTML file that will be loaded when selecting the plugin in the list
-    main_view_html = "main_view.html"
-
-    # The HTML file that will be used to display a widget in the plugin main page
-    # Comment this out if you don't plan to use a tile view. This will make a button with your plugin name appear
-    tile_view_html = ""
-    
+    # A normal method. It can be called from JavaScript using call_plugin_function("method_2", argument1, argument2)
+    async def method_2(self, *args):
+        pass
     first_run = "True"
     
     temp_config = "/dev/null"
 
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
-    async def __main(self):
+    async def _main(self):
         steam_directory = "/home/deck/.local/share/Steam/"
         config_file = "/config/config.vdf"
         temp = tempfile.NamedTemporaryFile(delete=True)
