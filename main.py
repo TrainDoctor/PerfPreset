@@ -7,10 +7,13 @@ import vdf
 class Plugin:
     temp_config = "/dev/null"
     
-    #
     async def get_perfsettings(self, *args):
         vdf_obj = vdf.parse(open(Plugin.temp_config), mapper=collections.OrderedDict)
-        return vdf.VDFDict.get("perf")
+        vdf_dict = vdf.VDFDict.get("perf")
+        return vdf_dict
+    
+    async def get_returnsettings(self):
+        return subprocess.Popen("systemctl is-active sshd", stdout=subprocess.PIPE, shell=True).communicate()[0] == b'active\n'
 
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def _main(self):
