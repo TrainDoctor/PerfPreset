@@ -1,8 +1,16 @@
+import collections
 import os,shutil,subprocess
 import tempfile
 
+import vdf
+
 class Plugin:
     temp_config = "/dev/null"
+    
+    #
+    async def get_perfsettings(self, *args):
+        vdf_obj = vdf.parse(open(Plugin.temp_config), mapper=collections.OrderedDict)
+        return vdf.VDFDict.get("perf")
 
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def _main(self):
