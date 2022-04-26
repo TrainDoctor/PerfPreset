@@ -5,20 +5,23 @@
         <link rel="stylesheet" href="/steam_resource/css/library.css">
         <script src="/static/library.js"></script>
         <script>
-        function getVDF() {
-            return call_plugin_method("get_vdf", {});
+        async function getVDF(protected) {
+            return call_plugin_method("get_vdf", { "protected": true});
         }
-        // async function getActive() {
-        //     let activesets = await call_plugin_method("get_perfsettings")
-        //     console.log("activesets: " + activesets)
-        //     document.getElementById("active").innerHTML = toString(activesets)
-        //     // console.log("got settings")
-        // }
+        async function getInt() {
+            return call_plugin_method("get_int", {});
+        }
+        async function getActive() {
+            let activesets = getInt()
+            console.log("Data requested")
+            activesets.then(console.log("Data provided!"))
+            document.getElementById("active").innerHTML = toString(activesets)
+        }
         </script>
         <style type="text/css" media="screen"></style>
     </head>
    
-    <body>
+    <body onload="getActive()">
         <div class="quickaccessmenu_TabGroupPanel_1QO7b Panel Focusable">
             <div class="quickaccesscontrols_PanelSectionRow_26R5w">
                 <div class="quickaccesscontrols_PanelSectionRow_26R5w">
