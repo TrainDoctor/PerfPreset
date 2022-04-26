@@ -11,4 +11,4 @@ This is the template plugin for developing plugins for the [SteamOS Plugin Loade
 
 ## License
 
-This Template Project is under The Unlicense. You may license your own plugin under whatever license you prefer.
+This Template Project is under GPLV2
