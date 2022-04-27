@@ -6,25 +6,26 @@
         <script src="/static/library.js"></script>
         <script>
             //Python Functions
-            async function getVDF(protected) {
-                return call_plugin_method("get_vdf", { "protected": true});
-            }
+            // async function getVDF(protected) {
+            //     return call_plugin_method("get_vdf", { "protected": true});
+            // }
 
             function getInt() {
                 return call_plugin_method("get_int", {});
             }
 
-            async function getActive() {
-                let activesets = getInt()
+            async function testInt() {
+                 let activesets = document.getElementById("config")
                 console.log("Data requested")
                 // activesets.then(console.log("Data provided!"))
-                document.getElementById("active").innerHTML = toString(activesets)
+                activesets.innerHTML = "Testing!"
+                activesets.innerHTML = await getInt()
             }
         </script>
         <style type="text/css" media="screen"></style>
     </head>
    
-    <body onload="getActive()">
+    <body>
         <div class="quickaccessmenu_TabGroupPanel_1QO7b Panel Focusable">
             <div class="quickaccesscontrols_PanelSectionRow_26R5w">
                 <div class="quickaccesscontrols_PanelSectionRow_26R5w">
@@ -36,7 +37,7 @@
                         </div>
                     </div>
                     <div>Active Settings</div>
-                    <span id="active"></span>
+                    <div id="config" onclick="testInt()">Test Me!</div>
                 </div>
             </div>
         </div>

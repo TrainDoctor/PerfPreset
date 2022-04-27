@@ -1,13 +1,16 @@
 import sys,os,shutil,subprocess,random
-import collections,tempfile,pkg_resources
+import collections,tempfile
+#import pkg_resources
 
-required = {'vdf'}
-installed = {pkg.key for pkg in pkg_resources.working_set}
-missing = required - installed
+sys.path.insert(1,"/home/deck/.local/lib/python3.10/")
 
-if missing:
-    subprocess.run(["bash", "install.sh"], cwd="/home/deck/homebrew/plugins/PerfPresets/",capture_output=True)
-    exit()
+# required = {'vdf'}
+# installed = {pkg.key for pkg in pkg_resources.working_set}
+# missing = required - installed
+
+# if missing:
+#     subprocess.run(["bash", "install.sh"], cwd="/home/deck/homebrew/plugins/PerfPresets/",capture_output=True)
+#     exit()
 
 import vdf
 
@@ -20,17 +23,17 @@ class Plugin:
         out = random.randint(1,10)
         return out
     
-    async def get_vdf(self, protected = False) -> dict:
-        if protected:
-            vdf_obj = vdf.parse(open(Plugin.orig_config, "rt"), mapper=collections.OrderedDict)
-        else:
-            vdf_obj = vdf.parse(open(Plugin.orig_config, "rt"), mapper=collections.OrderedDict)
-        return vdf_obj
+    # async def get_vdf(self, protected = False) -> dict:
+    #     if protected:
+    #         vdf_obj = vdf.parse(open(Plugin.orig_config, "rt"), mapper=collections.OrderedDict)
+    #     else:
+    #         vdf_obj = vdf.parse(open(Plugin.orig_config, "rt"), mapper=collections.OrderedDict)
+    #     return vdf_obj
     
-    def get_perfsettings(self, *args):
-        vdf_obj = vdf.parse(open(Plugin.temp_config), mapper=collections.OrderedDict)
-        vdf_dict = vdf.VDFDict.get("perf")
-        return str(vdf_dict)
+    # def get_perfsettings(self, *args):
+    #     vdf_obj = vdf.parse(open(Plugin.temp_config), mapper=collections.OrderedDict)
+    #     vdf_dict = vdf.VDFDict.get("perf")
+    #     return str(vdf_dict)
 
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def _main(self):
