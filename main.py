@@ -1,5 +1,4 @@
-from random import randint
-import sys,os,shutil,subprocess
+import sys,os,shutil,subprocess,random
 import collections,tempfile,pkg_resources
 
 required = {'vdf'}
@@ -18,7 +17,7 @@ class Plugin:
     temp_config = "/dev/null"
     
     async def get_int(self) -> int:
-        out = randint(1,10)
+        out = random.randint(1,10)
         return out
     
     async def get_vdf(self, protected = False) -> dict:
