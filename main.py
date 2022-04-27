@@ -18,7 +18,8 @@ class Plugin:
     temp_config = "/dev/null"
     
     async def get_int(self) -> int:
-        return randint(1,10)
+        out = randint(1,10)
+        return out
     
     async def get_vdf(self, protected = False) -> dict:
         if protected:
@@ -34,7 +35,8 @@ class Plugin:
 
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def _main(self):
-        temp = tempfile.NamedTemporaryFile(delete=True)
+        pass
+        # temp = tempfile.NamedTemporaryFile(delete=True)
         # shutil.copy2(steam_directory+config_file, temp.name) # for diffing if need be
         # if not os.path.exists(steam_directory+config_file+".bak"):
         #     shutil.copy(steam_directory+config_file,steam_directory+config_file+".bak") # preserve a backup of our original file jic
