@@ -2,8 +2,6 @@ import sys,os,shutil,subprocess,random
 import collections,tempfile
 #import pkg_resources
 
-sys.path.insert(1,"/home/deck/.local/lib/python3.10/")
-
 # required = {'vdf'}
 # installed = {pkg.key for pkg in pkg_resources.working_set}
 # missing = required - installed
