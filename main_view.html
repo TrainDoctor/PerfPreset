@@ -6,26 +6,29 @@
         <script src="/static/library.js"></script>
         <script>
             //Python Functions
-            // async function getVDF(protected) {
-            //     return call_plugin_method("get_vdf", { "protected": true});
-            // }
-
-            function getInt() {
-                return call_plugin_method("get_int", {});
+            function getVDF(protected) {
+                return call_plugin_method("get_vdf", {"protected": protected});
             }
 
-            async function testInt() {
-                 let activesets = document.getElementById("config")
+            async function getPerf(protected) {
+                test = await getVDF(protected)
+                out = call_plugin_method("get_perf_ext", {"obj": test});
+                // return call_plugin_method("get_perf_cont", {"protected": protected});
+                console.log(out)
+                return out;
+            }
+
+            async function testLoad() {
+                let activesets = await getPerf(true);
                 console.log("Data requested")
-                // activesets.then(console.log("Data provided!"))
-                activesets.innerHTML = "Testing!"
-                activesets.innerHTML = await getInt()
+                console.log("Got data: " + activesets)
+                document.getElementById("config").innerHTML = activesets.toString();
             }
         </script>
         <style type="text/css" media="screen"></style>
     </head>
    
-    <body>
+    <body onload="testLoad()">
         <div class="quickaccessmenu_TabGroupPanel_1QO7b Panel Focusable">
             <div class="quickaccesscontrols_PanelSectionRow_26R5w">
                 <div class="quickaccesscontrols_PanelSectionRow_26R5w">
@@ -37,7 +40,7 @@
                         </div>
                     </div>
                     <div>Active Settings</div>
-                    <div id="config" onclick="testInt()">Test Me!</div>
+                    <div id="config">Test Me!</div>
                 </div>
             </div>
         </div>

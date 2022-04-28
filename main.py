@@ -1,32 +1,61 @@
 import sys,os,shutil,subprocess,random
 import collections,tempfile
-#import pkg_resources
 
-# required = {'vdf'}
-# installed = {pkg.key for pkg in pkg_resources.working_set}
-# missing = required - installed
+sys.path.insert(1, "/home/deck/.local/lib/python3.10/site-packages")
 
-# if missing:
-#     subprocess.run(["bash", "install.sh"], cwd="/home/deck/homebrew/plugins/PerfPresets/",capture_output=True)
-#     exit()
-
-import vdf
+try:
+    import vdf
+except:
+    subprocess.run(["bash", "install.sh"], cwd="/home/deck/homebrew/plugins/PerfPresets/",capture_output=True)
 
 class Plugin:
     steam_directory = "/home/deck/.local/share/Steam/"
     orig_config = "/home/deck/.local/share/Steam/config/config.vdf"
     temp_config = "/dev/null"
     
-    async def get_int(self) -> int:
-        out = random.randint(1,10)
-        return out
+    async def get_vdf(self, protected = False):
+        # load vdf file as a python object (dictionary)
+        data = None
+        with open(Plugin.orig_config, "rt") as file:
+            data = file.read()
+        if protected:
+            vdf_obj = vdf.loads(data, mapper=vdf.VDFDict)
+        else:
+            vdf_obj = vdf.loads(data, mapper=vdf.VDFDict)
+        return vdf_obj
     
-    # async def get_vdf(self, protected = False) -> dict:
-    #     if protected:
-    #         vdf_obj = vdf.parse(open(Plugin.orig_config, "rt"), mapper=collections.OrderedDict)
-    #     else:
-    #         vdf_obj = vdf.parse(open(Plugin.orig_config, "rt"), mapper=collections.OrderedDict)
-    #     return vdf_obj
+    # get perf externalized
+    async def get_perf_ext(self, obj = vdf.VDFDict):
+        # out = obj.get(self, 'perf')
+        key = dict.get(obj, "InstallConfigStore")
+        key = dict.get(key, "Software")
+        key = dict.get(key, "Valve")
+        key = dict.get(key, "Steam")
+        key = dict.get(key, "perf")
+        return str(key)
+        # out = []
+        # for k,v in 
+        #     out += k
+        #     if k is 'perf':
+        #         return v
+        return "NotFound"
+    
+    # get perf self contained
+    async def get_perf_cont(self, protected):
+        obj = self.get_vdf(protected)
+        out = obj
+        return out
+        # try:
+        #     return vars(obj).get('Software')
+        #     for atr,val in vars(obj):
+        #         if atr is 'perf':
+        #             return val
+        #         else:
+        #             continue
+        #     # out = str(dic)
+        #     return "NotFound"
+        # except:
+        #     return "NotFoundForSure"
     
     # def get_perfsettings(self, *args):
     #     vdf_obj = vdf.parse(open(Plugin.temp_config), mapper=collections.OrderedDict)
