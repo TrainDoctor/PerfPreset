@@ -1,66 +1,74 @@
 import sys,os,shutil,subprocess,random
 import collections,tempfile
+import logging
 
+logging.basicConfig(filename="/home/deck/homebrew/perfpresets.log",
+					format='%(asctime)s %(levelname)s %(message)s',
+					filemode='w',
+                    force=True)
+logger=logging.getLogger()
+logger.setLevel(logging.INFO)
+
+logger.debug("Adding local python libraries to path")
 sys.path.insert(1, "/home/deck/.local/lib/python3.10/site-packages")
 
+logger.info("Attempting to import VDF Library")
 try:
     import vdf
 except:
-    subprocess.run(["bash", "install.sh"], cwd="/home/deck/homebrew/plugins/PerfPresets/",capture_output=True)
+    logger.error("Could not import vdf library, running install script.\nMake sure to reload the plugin-loader.")
+    subprocess.run(["bash", "install.sh"], cwd="/home/deck/homebrew/plugins/PerfPresets/")
+    raise ModuleNotFoundError
+    # TODO: implement a subprocess that can reload plugin_loader if vdf could not be imported
+    # subprocess.run(["sudo", "systemctl", "restart", "plugin_loader.service"])
 
 class Plugin:
     steam_directory = "/home/deck/.local/share/Steam/"
     orig_config = "/home/deck/.local/share/Steam/config/config.vdf"
+    game_list = "/home/deck/.local/share/Steam/steamapps/libraryfolders.vdf"
     temp_config = "/dev/null"
     
-    async def get_vdf(self, protected = False):
+    def _finditem(self, obj, key):
+        if key in obj: 
+            logger.debug("Item found, " + str(key) + " " + str(obj[key]))
+            return obj[key]
+        for k, v in obj.items():
+            logger.debug("K: " + str(k))
+            if isinstance(v,dict):
+                item = self._finditem(self, v, key)
+                if item is not None:
+                    return item
+            elif isinstance(v,list):
+                for list_item in v:
+                    logger.debug("List Item: " + str(list_item))
+                    item = self._finditem(self, list_item, key)
+                    if item is not None:
+                        return item
+    
+    async def pretty_perf(self, obj):
+        logger.debug("Prettying up: " + str(obj))
+        out = ""
+        for k,v in obj.items():
+            out += str(k) + " " + str(v) + "<br>"
+        return out
+    
+    async def get_vdf(self, isprotected = True):
         # load vdf file as a python object (dictionary)
         data = None
         with open(Plugin.orig_config, "rt") as file:
             data = file.read()
-        if protected:
+        if isprotected:
+            logger.debug("Loading VDF Config. Protecting original file from changes.")
             vdf_obj = vdf.loads(data, mapper=vdf.VDFDict)
         else:
+            logger.warn("Loading VDF Config. Not protecting original file from changes!")
             vdf_obj = vdf.loads(data, mapper=vdf.VDFDict)
         return vdf_obj
     
-    # get perf externalized
-    async def get_perf_ext(self, obj = vdf.VDFDict):
-        # out = obj.get(self, 'perf')
-        key = dict.get(obj, "InstallConfigStore")
-        key = dict.get(key, "Software")
-        key = dict.get(key, "Valve")
-        key = dict.get(key, "Steam")
-        key = dict.get(key, "perf")
-        return str(key)
-        # out = []
-        # for k,v in 
-        #     out += k
-        #     if k is 'perf':
-        #         return v
-        return "NotFound"
-    
     # get perf self contained
-    async def get_perf_cont(self, protected):
-        obj = self.get_vdf(protected)
-        out = obj
-        return out
-        # try:
-        #     return vars(obj).get('Software')
-        #     for atr,val in vars(obj):
-        #         if atr is 'perf':
-        #             return val
-        #         else:
-        #             continue
-        #     # out = str(dic)
-        #     return "NotFound"
-        # except:
-        #     return "NotFoundForSure"
-    
-    # def get_perfsettings(self, *args):
-    #     vdf_obj = vdf.parse(open(Plugin.temp_config), mapper=collections.OrderedDict)
-    #     vdf_dict = vdf.VDFDict.get("perf")
-    #     return str(vdf_dict)
+    async def get_perf(self, isprotected):
+        obj = await self.get_vdf(self,isprotected)
+        return self._finditem(self, obj, key="perf")
 
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def _main(self):

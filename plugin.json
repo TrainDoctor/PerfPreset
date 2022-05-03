@@ -4,8 +4,8 @@
     "main_view_html": "main_view.html",
     "tile_view_html": "",
     "flags": [
-        "debug",
-        "_hot_reload",
+        "_debug",
+        "hot_reload",
         "_root"
     ]
 }

@@ -6,41 +6,58 @@
         <script src="/static/library.js"></script>
         <script>
             //Python Functions
-            function getVDF(protected) {
-                return call_plugin_method("get_vdf", {"protected": protected});
+            function getVDF(isprotected) {
+                return call_plugin_method("get_vdf", {"isprotected": isprotected});
             }
 
-            async function getPerf(protected) {
-                test = await getVDF(protected)
-                out = call_plugin_method("get_perf_ext", {"obj": test});
-                // return call_plugin_method("get_perf_cont", {"protected": protected});
-                console.log(out)
-                return out;
+            async function getPerf(isprotected) {
+                return call_plugin_method("get_perf", {"isprotected": isprotected});
             }
 
-            async function testLoad() {
-                let activesets = await getPerf(true);
-                console.log("Data requested")
-                console.log("Got data: " + activesets)
-                document.getElementById("config").innerHTML = activesets.toString();
+            async function prettyPerf(obj) {
+                return call_plugin_method("pretty_perf", {"obj": obj});
+            }
+
+            async function getCurrentSettings() {
+                let active = await getPerf(true);
+                let prettyperf = await prettyPerf(active)
+                document.getElementById("display").innerHTML = prettyperf;
             }
         </script>
         <style type="text/css" media="screen"></style>
     </head>
    
-    <body onload="testLoad()">
+    <body onload="getCurrentSettings()">
         <div class="quickaccessmenu_TabGroupPanel_1QO7b Panel Focusable">
             <div class="quickaccesscontrols_PanelSectionRow_26R5w">
                 <div class="quickaccesscontrols_PanelSectionRow_26R5w">
-                    <div class="basicdialog_Field_ugL9c basicdialog_WithFirstRow_31BpU basicdialog_WithBottomSeparator_1e8sp basicdialog_ExtraPaddingOnChildrenBelow_2-owv basicdialog_StandardPadding_1HrfN basicdialog_HighlightOnFocus_1xh2W Panel Focusable" style="--indent-level:0;">
-                        <div class="basicdialog_FieldLabelRow_1oXm0">
+                    <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
+                        style="--indent-level:0;">
+                        <div class="gamepaddialog_FieldChildren_2rhav">
+                            <button type="button" 
+                                class="DialogButton _DialogLayout Secondary gamepaddialog_Button_cXzBZ Focusable" tabindex="0">
+                                Save Settings
+                            </button>
+                        </div>
+                    </div>
+                    <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
+                        style="--indent-level:0;">
+                        <div class="gamepaddialog_FieldChildren_2rhav">
+                            <button type="button" onclick="testLoad()"
+                                class="DialogButton _DialogLayout Secondary gamepaddialog_Button_cXzBZ Focusable" tabindex="0">
+                                Load Settings
+                            </button>
+                        </div>
+                    </div>
+                    <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
+                        style="--indent-level:0;">
+                        <div class="gamepaddialog_FieldChildren_2rhav">
                             <div class="basicdialog_FieldLabel_2URP7">
-                                Current Settings
+                                Current Settings:
                             </div>
                         </div>
                     </div>
-                    <div>Active Settings</div>
-                    <div id="config">Test Me!</div>
+                    <div id="display"></div>
                 </div>
             </div>
         </div>
