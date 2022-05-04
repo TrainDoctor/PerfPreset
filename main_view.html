@@ -5,36 +5,57 @@
         <link rel="stylesheet" href="/steam_resource/css/library.css">
         <script src="/static/library.js"></script>
         <script>
-            //Python Functions
-            function getVDF(isprotected) {
-                return call_plugin_method("get_vdf", {"isprotected": isprotected});
+            // Python Functions
+            //file is a filepath including suffix to the location of a vdf file
+            function getVDF(file) {
+                return call_plugin_method("get_vdf", {"file": file});
             }
 
-            async function getPerf(isprotected) {
-                return call_plugin_method("get_perf", {"isprotected": isprotected});
+            async function getGame() {
+                return call_plugin_method("get_game", {});
+            }
+
+            async function getPerf() {
+                return call_plugin_method("get_perf", {});
             }
 
             async function prettyPerf(obj) {
                 return call_plugin_method("pretty_perf", {"obj": obj});
             }
 
+            //Non-python
             async function getCurrentSettings() {
-                let active = await getPerf(true);
+                let active = await getPerf();
                 let prettyperf = await prettyPerf(active)
-                document.getElementById("display").innerHTML = prettyperf;
+                document.getElementById("actsetdisplay").innerHTML = prettyperf;
             }
+            async function getCurrentGame() {
+                let game = await getGame();
+                document.getElementById("actgamedisplay").innerHTML = game.toString();
+            }
+            async function autoPopulate() {
+                await getCurrentSettings();
+                await getCurrentGame();
+            }
+            window.setInterval('autoPopulate()', 500);
         </script>
         <style type="text/css" media="screen"></style>
     </head>
    
-    <body onload="getCurrentSettings()">
+    <body onload="autoPopulate()">
         <div class="quickaccessmenu_TabGroupPanel_1QO7b Panel Focusable">
             <div class="quickaccesscontrols_PanelSectionRow_26R5w">
                 <div class="quickaccesscontrols_PanelSectionRow_26R5w">
+                    <div class="basicdialog_FieldLabel_2URP7" style="text-align:center;">
+                        Active Game:
+                    </div>
+                    <div id="actgamedisplay" style="text-align:center;" onclick="getCurrentGame()">
+                        Active Game
+                    </div>
                     <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
                         style="--indent-level:0;">
                         <div class="gamepaddialog_FieldChildren_2rhav">
-                            <button type="button" 
+                            <button type="button"
                                 class="DialogButton _DialogLayout Secondary gamepaddialog_Button_cXzBZ Focusable" tabindex="0">
                                 Save Settings
                             </button>
@@ -43,7 +64,7 @@
                     <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
                         style="--indent-level:0;">
                         <div class="gamepaddialog_FieldChildren_2rhav">
-                            <button type="button" onclick="testLoad()"
+                            <button type="button"
                                 class="DialogButton _DialogLayout Secondary gamepaddialog_Button_cXzBZ Focusable" tabindex="0">
                                 Load Settings
                             </button>
@@ -51,13 +72,13 @@
                     </div>
                     <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
                         style="--indent-level:0;">
-                        <div class="gamepaddialog_FieldChildren_2rhav">
+                        <div class="gamepaddialog_FieldChildren_2rhav" onclick="getCurrentSettings()">
                             <div class="basicdialog_FieldLabel_2URP7">
                                 Current Settings:
                             </div>
                         </div>
                     </div>
-                    <div id="display"></div>
+                    <div id="actsetdisplay"></div>
                 </div>
             </div>
         </div>
