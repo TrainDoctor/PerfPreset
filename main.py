@@ -1,13 +1,14 @@
 import json
+import re
 import sys,os,shutil,subprocess
 import collections,tempfile
 import logging,traceback
+from textwrap import indent
 
 if not os.path.exists("/home/deck/.config/pluginloader/perfpresets"):
     subprocess.run(["mkdir", "-p", "/home/deck/.config/pluginloader/perfpresets/"])
 
-logging.basicConfig(filename="/home/deck/.config/pluginloader/perfpresets/\
-                    perfpresets.log",
+logging.basicConfig(filename="/home/deck/.config/pluginloader/perfpresets/perfpresets.log",
 					format='%(asctime)s %(levelname)s %(message)s',
 					filemode='w',
                     force=True)
@@ -36,7 +37,7 @@ except:
 # if not os.path.exists("/home/deck/.config/pluginloader/perfpresets"):
 #     subprocess.run(["mkdir", "-p", "/home/deck/.config/pluginloader/perfpresets/"])
 
-info_preset =   {   "location":  "/home/deck/.config/perfpresets",
+info_preset =   {   "location":  "/home/deck/.config/pluginloader/perfpresets/",
                     "filename": "presets.json"  }
 info_steam =    {   "locationlocal" : "/home/deck/.local/share/Steam",
                     "locationregistry": "/home/deck/.steam",
@@ -117,21 +118,26 @@ class Plugin:
         avaliable_presets = json.load(open(Plugin.preset_registry))
  
     async def save_preset(self):
-        data_game = json.load(await self.get_game(self))
-        data_perf = json.load(await self.get_settings(self))
-        filename = f'{data_game.get("name")}_{data_game.get("id")}'
+        logger.debug("Starting to save preset")
+        logger.debug("Getting game info")
+        data_game = await self.get_game(self)
+        logger.debug("Getting settings info")
+        data_perf = await self.get_settings(self)
+        name = re.sub(r"[^a-zA-Z0-9]","",str(data_game.get("name")))
+        filename = f'{name}_{data_game.get("id")}'
         file = None
         try:
-            with open(info_preset.get("location")+filename, 'x') as file:
-                file.write(json.dumps(data_game)+json.dumps(data_perf))
-            registry = json.load(open(self.preset_registry))
-            presets = self._findfirstitem(registry, "presets")
-            logger.debug(registry)
-            logger.debug(type(registry))
-            # with open(self.preset_registry, 'a') as file:
-            #     file.write(json.dumps(data_game)+json.dumps(data_perf))
-        except FileNotFoundError:
-            logger.error(f"COULD NOT ADD PRESET TO REGISTRY, {sys.exc_info()}")
+            logger.debug("Trying to create file")
+            if not os.path.exists(info_preset.get("location")+filename):
+                open(info_preset.get("location")+filename+".json", 'x')
+            with open(info_preset.get("location")+filename+".json", 'a') as file:
+                tofile = { "preset": { "game": "", "settings": ""}}
+                tofile["preset"]["game"] = data_game
+                tofile["preset"]["settings"] = data_perf
+                file.write(json.dumps(tofile, indent=4))
+                logger.debug(f"Created a preset file for: {filename}")
+        except FileExistsError:
+            logger.error(f"Attempted to create already existing file, {sys.exc_info()}")
         except OSError:
             logger.error(f"COULD NOT CREATE FILE, {sys.exc_info()}")
         except:
@@ -139,6 +145,12 @@ class Plugin:
         finally:
             logger.info(f"Attempted to create a preset file for: {filename}")
     
+                    # registry = json.load(open(self.preset_registry))
+            # # presets = self._findfirstitem(registry, "presets")
+            # # logger.debug(registry)
+            # # logger.debug(type(registry))
+            # with open(self.preset_registry, 'a') as file:
+            #     file.write(json.dumps(data_game)+json.dumps(data_perf))
     async def load_preset(self):
         pass
    
@@ -153,7 +165,9 @@ class Plugin:
         # check if plugin registry doesn't exist
         if not os.path.exists(registry):
             # if so, create it
-            default_registry = { "presets" : {}}
-            with open(self.preset_registry, 'x') as file:
-                file.write(json.dumps(default_registry))
+            default_registry = { "presets" : {} }
+            with open(registry, 'x') as file:
+                file.write(json.dumps(default_registry, indent=4))
+        
+                    
         
