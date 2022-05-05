@@ -12,7 +12,7 @@ logging.basicConfig(filename="/home/deck/.config/pluginloader/perfpresets/\
 					filemode='w',
                     force=True)
 logger=logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 def log_except_hook(*exc_info):
     text = "".join(traceback.format_exception(*exc_info()))
@@ -33,8 +33,8 @@ except:
     # TODO: implement a subprocess that can reload plugin_loader if vdf could not be imported
     # subprocess.run(["sudo", "systemctl", "restart", "plugin_loader.service"])
 
-if not os.path.exists("/home/deck/.config/pluginloader/perfpresets"):
-    subprocess.run(["mkdir", "-p", "/home/deck/.config/pluginloader/perfpresets/"])
+# if not os.path.exists("/home/deck/.config/pluginloader/perfpresets"):
+#     subprocess.run(["mkdir", "-p", "/home/deck/.config/pluginloader/perfpresets/"])
 
 info_preset =   {   "location":  "/home/deck/.config/perfpresets",
                     "filename": "presets.json"  }
@@ -79,7 +79,7 @@ class Plugin:
         return vdf_obj
     
     # get the name and app id of currently running game
-    async def get_game(self) -> dict:
+    async def get_game(self):
         obj = await self.get_vdf(self, Plugin.steam_registry)
         id = self._findfirstitem(self, obj, key="RunningAppID")
         out = { "name" :  "",
@@ -87,8 +87,8 @@ class Plugin:
         # TODO: incorporate language detection for smarter name cleanup
         # lang = self._finditem(self, obj, key="language")
         if str(id) == "0":
-            out.update("name", "Unknown/Unsupported Program")
-            out.update("id", "0")
+            out["name"] = "Unknown/Unsupported Program"
+            out["id"] = str(id)
         else:
             name = self._findfirstitem(self, obj, key=str(id))
             # TODO: account for UTF-8 characters properly
@@ -96,8 +96,8 @@ class Plugin:
             name = str(name.get("name")).encode("ascii", "ignore").decode()
             # TODO: establish a good length to truncate game names
             # ( or just display first and last 'n' characters in modal?)
-            out.update("name", name)
-            out.update("id", str(id))
+            out["name"] = name
+            out["id"] = str(id)
         return out
 
     # get perf self contained
@@ -117,8 +117,8 @@ class Plugin:
         avaliable_presets = json.load(open(Plugin.preset_registry))
  
     async def save_preset(self):
-        data_game = json.load(await self.get_game())
-        data_perf = json.load(await self.get_settings())
+        data_game = json.load(await self.get_game(self))
+        data_perf = json.load(await self.get_settings(self))
         filename = f'{data_game.get("name")}_{data_game.get("id")}'
         file = None
         try:
@@ -144,11 +144,16 @@ class Plugin:
    
     async def _main(self):
         # establish config filepath
-        config = self.steam_dirprimary+self.steam_config
+        config = self.steam_config
+        registry = self.preset_registry
         # check if copy of config doesn't exist
-        if not os.path.exists(config, config+".bak"):
+        if not os.path.exists(config+".bak"):
             # if so, make a copy
             shutil.copy2(config, config+".bak")
-        default_registry = { "presets" : {}}
-        with open(self.preset_registry, 'x') as file:
+        # check if plugin registry doesn't exist
+        if not os.path.exists(registry):
+            # if so, create it
+            default_registry = { "presets" : {}}
+            with open(self.preset_registry, 'x') as file:
                 file.write(json.dumps(default_registry))
+        
