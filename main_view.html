@@ -1,86 +1,105 @@
 <html>
-    <head>
-        <link rel="stylesheet" href="/steam_resource/css/2.css">
-        <link rel="stylesheet" href="/steam_resource/css/39.css">
-        <link rel="stylesheet" href="/steam_resource/css/library.css">
-        <script src="/static/library.js"></script>
-        <script>
-            // Python Functions
-            //file is a filepath including suffix to the location of a vdf file
-            function getVDF(file) {
-                return call_plugin_method("get_vdf", {"file": file});
-            }
 
-            async function getGame() {
-                return call_plugin_method("get_game", {});
-            }
+<head>
+    <link rel="stylesheet" href="/steam_resource/css/2.css">
+    <link rel="stylesheet" href="/steam_resource/css/39.css">
+    <link rel="stylesheet" href="/steam_resource/css/library.css">
+    <script src="/static/library.js"></script>
+    <script>
+        // Python Functions
+        //file is a filepath including suffix to the location of a vdf file
+        // function getVDF(file) {
+        //     return call_plugin_method("get_vdf", {
+        //         "file": file
+        //     });
+        // }
 
-            async function getPerf() {
-                return call_plugin_method("get_perf", {});
-            }
+        async function getGame() {
+            return call_plugin_method("get_game", {});
+        }
 
-            async function prettyPerf(obj) {
-                return call_plugin_method("pretty_perf", {"obj": obj});
-            }
+        async function getSettings() {
+            return call_plugin_method("get_settings", {});
+        }
 
-            //Non-python
-            async function getCurrentSettings() {
-                let active = await getPerf();
-                let prettyperf = await prettyPerf(active)
-                document.getElementById("actsetdisplay").innerHTML = prettyperf;
+        async function prettySettings(obj) {
+            return call_plugin_method("pretty_settings", {
+                "obj": obj
+            });
+        }
+        
+        async function savePreset() {
+            return call_plugin_method("save_preset", {});
+        }
+
+        //Non-python
+        async function showCurrentSettings() {
+            document.getElementById("actsetdisplay").innerHTML = 
+                                        await prettySettings(await getSettings());
+        }
+        
+        async function showCurrentGame() {
+            info = await getGame();
+            if (info.id == "0") {
+                document.getElementById("actgamedisplay").innerHTML = info.name + "<br>"+ info.id;
+            } 
+            else {
+                document.getElementById("actgamedisplay").innerHTML = info.name.toString() + info.id.toString();
             }
-            async function getCurrentGame() {
-                let game = await getGame();
-                document.getElementById("actgamedisplay").innerHTML = game.toString();
-            }
-            async function autoPopulate() {
-                await getCurrentSettings();
-                await getCurrentGame();
-            }
-            window.setInterval('autoPopulate()', 500);
-        </script>
-        <style type="text/css" media="screen"></style>
-    </head>
-   
-    <body onload="autoPopulate()">
-        <div class="quickaccessmenu_TabGroupPanel_1QO7b Panel Focusable">
+        }
+
+        async function autoPopulate() {
+            await showCurrentSettings();
+            await showCurrentGame();
+        }
+
+        // window.setInterval('autoPopulate()', 500);
+    </script>
+    <style type="text/css" media="screen"></style>
+</head>
+
+<body onload="autoPopulate()">
+    <div class="quickaccessmenu_TabGroupPanel_1QO7b Panel Focusable">
+        <div class="quickaccesscontrols_PanelSectionRow_26R5w">
             <div class="quickaccesscontrols_PanelSectionRow_26R5w">
-                <div class="quickaccesscontrols_PanelSectionRow_26R5w">
-                    <div class="basicdialog_FieldLabel_2URP7" style="text-align:center;">
-                        Active Game:
-                    </div>
-                    <div id="actgamedisplay" style="text-align:center;" onclick="getCurrentGame()">
-                        Active Game
-                    </div>
-                    <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
-                        style="--indent-level:0;">
-                        <div class="gamepaddialog_FieldChildren_2rhav">
-                            <button type="button"
-                                class="DialogButton _DialogLayout Secondary gamepaddialog_Button_cXzBZ Focusable" tabindex="0">
-                                Save Settings
-                            </button>
-                        </div>
-                    </div>
-                    <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
-                        style="--indent-level:0;">
-                        <div class="gamepaddialog_FieldChildren_2rhav">
-                            <button type="button"
-                                class="DialogButton _DialogLayout Secondary gamepaddialog_Button_cXzBZ Focusable" tabindex="0">
-                                Load Settings
-                            </button>
-                        </div>
-                    </div>
-                    <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
-                        style="--indent-level:0;">
-                        <div class="gamepaddialog_FieldChildren_2rhav" onclick="getCurrentSettings()">
-                            <div class="basicdialog_FieldLabel_2URP7">
-                                Current Settings:
-                            </div>
-                        </div>
-                    </div>
-                    <div id="actsetdisplay"></div>
+                <div class="basicdialog_FieldLabel_2URP7" style="text-align:center;">
+                    Active Game:
                 </div>
+                <div id="actgamedisplay" style="text-align:center;" onclick="showCurrentGame()">
+                    Placeholder
+                </div>
+                <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
+                    style="--indent-level:0;">
+                    <div class="gamepaddialog_FieldChildren_2rhav">
+                        <button type="button" onclick=""
+                            class="DialogButton _DialogLayout Secondary gamepaddialog_Button_cXzBZ Focusable"
+                            tabindex="0">
+                            Save Settings
+                        </button>
+                    </div>
+                </div>
+                <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
+                    style="--indent-level:0;">
+                    <div class="gamepaddialog_FieldChildren_2rhav">
+                        <button type="button" onclick=""
+                            class="DialogButton _DialogLayout Secondary gamepaddialog_Button_cXzBZ Focusable"
+                            tabindex="0">
+                            Load Settings
+                        </button>
+                    </div>
+                </div>
+                <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
+                    style="--indent-level:0;">
+                    <div class="gamepaddialog_FieldChildren_2rhav" onclick="showCurrentSettings()">
+                        <div class="basicdialog_FieldLabel_2URP7">
+                            Current Settings:
+                        </div>
+                    </div>
+                </div>
+                <div id="actsetdisplay"></div>
             </div>
         </div>
-    </body>
+    </div>
+</body>
+
 </html>

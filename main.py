@@ -1,3 +1,4 @@
+import json
 import sys,os,shutil,subprocess
 import collections,tempfile
 import logging,traceback
@@ -34,14 +35,22 @@ except:
 
 if not os.path.exists("/home/deck/.config/pluginloader/perfpresets"):
     subprocess.run(["mkdir", "-p", "/home/deck/.config/pluginloader/perfpresets/"])
-    
+
+info_preset =   {   "location":  "/home/deck/.config/perfpresets",
+                    "filename": "presets.json"  }
+info_steam =    {   "locationlocal" : "/home/deck/.local/share/Steam",
+                    "locationregistry": "/home/deck/.steam",
+                    "configpath": "/config/config.vdf",
+                    "registryname": "/registry.vdf"  }
+
 class Plugin:
-    # steam_directory = "/home/deck/.local/share/Steam/"
-    steam_config = "/home/deck/.local/share/Steam/config/config.vdf"
-    steam_data = "/home/deck/.steam/registry.vdf"
-    preset_location = "/home/deck/.config/perfpresets"
+
+    preset_registry = info_preset.get("location")+info_preset.get("filename")
+    steam_config = info_steam.get("locationlocal")+info_steam.get("configpath")
+    steam_registry = info_steam.get("locationregistry")+info_steam.get("registryname")
     
-    def _finditem(self, obj, key):
+    # recursively search through vdf to find a key and it's value
+    def _findfirstitem(self, obj, key):
         if key in obj: 
             logger.debug("Item found, " + str(key) + " " + str(obj[key]))
             return obj[key]
@@ -49,17 +58,18 @@ class Plugin:
             logger.debug("K: " + str(k))
             if isinstance(v,dict):
                 # logger.debug("Dict Item: " + str(v))
-                item = self._finditem(self, v, key)
+                item = self._findfirstitem(self, v, key)
                 if item is not None:
                     return item
             elif isinstance(v,list):
                 for list_item in v:
                     # logger.debug("List Item: " + str(list_item))
-                    item = self._finditem(self, list_item, key)
+                    item = self._findfirstitem(self, list_item, key)
                     if item is not None:
                         return item
     
-    async def get_vdf(self, vdfile):
+    # return a VDFDict object of a .vdf file
+    async def get_vdf(self, vdfile) -> vdf.VDFDict:
         # load vdf file as a python object (dictionary)
         data = None
         with open(vdfile, "rt") as file:
@@ -68,30 +78,77 @@ class Plugin:
         vdf_obj = vdf.loads(data, mapper=vdf.VDFDict)
         return vdf_obj
     
-    async def get_game(self) -> str:
-        obj = await self.get_vdf(self, Plugin.steam_data)
-        id = self._finditem(self, obj, key="RunningAppID")
+    # get the name and app id of currently running game
+    async def get_game(self) -> dict:
+        obj = await self.get_vdf(self, Plugin.steam_registry)
+        id = self._findfirstitem(self, obj, key="RunningAppID")
+        out = { "name" :  "",
+                "id" : ""}
         # TODO: incorporate language detection for smarter name cleanup
         # lang = self._finditem(self, obj, key="language")
         if str(id) == "0":
-            return f"Unknown/Unsupported Program<br>ID: {str(id)}"
+            out.update("name", "Unknown/Unsupported Program")
+            out.update("id", "0")
         else:
-            name = self._finditem(self, obj, key=str(id))
+            name = self._findfirstitem(self, obj, key=str(id))
+            # TODO: account for UTF-8 characters properly
+            # (this is simple enough for now)
             name = str(name.get("name")).encode("ascii", "ignore").decode()
-            return f"\"{name}\" ID: {str(id)}"
-            
+            # TODO: establish a good length to truncate game names
+            # ( or just display first and last 'n' characters in modal?)
+            out.update("name", name)
+            out.update("id", str(id))
+        return out
+
     # get perf self contained
-    async def get_perf(self):
+    async def get_settings(self):
         obj = await self.get_vdf(self, Plugin.steam_config)
-        return self._finditem(self, obj, key="perf")
+        return self._findfirstitem(self, obj, key="perf")
     
-    async def pretty_perf(self, obj):
+    # format settings for display
+    async def pretty_settings(self, obj):
         logger.debug("Prettying up: " + str(obj))
         out = ""
         for k,v in obj.items():
             out += str(k) + " " + str(v) + "<br>"
         return out
-
-    # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
-    async def _main(self):
+ 
+    async def get_presets(self):
+        avaliable_presets = json.load(open(Plugin.preset_registry))
+ 
+    async def save_preset(self):
+        data_game = json.load(await self.get_game())
+        data_perf = json.load(await self.get_settings())
+        filename = f'{data_game.get("name")}_{data_game.get("id")}'
+        file = None
+        try:
+            with open(info_preset.get("location")+filename, 'x') as file:
+                file.write(json.dumps(data_game)+json.dumps(data_perf))
+            registry = json.load(open(self.preset_registry))
+            presets = self._findfirstitem(registry, "presets")
+            logger.debug(registry)
+            logger.debug(type(registry))
+            # with open(self.preset_registry, 'a') as file:
+            #     file.write(json.dumps(data_game)+json.dumps(data_perf))
+        except FileNotFoundError:
+            logger.error(f"COULD NOT ADD PRESET TO REGISTRY, {sys.exc_info()}")
+        except OSError:
+            logger.error(f"COULD NOT CREATE FILE, {sys.exc_info()}")
+        except:
+            logger.error(f"AN ERROR OCCURED, {sys.exc_info()}")
+        finally:
+            logger.info(f"Attempted to create a preset file for: {filename}")
+    
+    async def load_preset(self):
         pass
+   
+    async def _main(self):
+        # establish config filepath
+        config = self.steam_dirprimary+self.steam_config
+        # check if copy of config doesn't exist
+        if not os.path.exists(config, config+".bak"):
+            # if so, make a copy
+            shutil.copy2(config, config+".bak")
+        default_registry = { "presets" : {}}
+        with open(self.preset_registry, 'x') as file:
+                file.write(json.dumps(default_registry))
