@@ -13,7 +13,7 @@ logging.basicConfig(filename="/home/deck/.config/pluginloader/perfpresets/perfpr
 					filemode='w',
                     force=True)
 logger=logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 def log_except_hook(*exc_info):
     text = "".join(traceback.format_exception(*exc_info()))
@@ -124,31 +124,30 @@ class Plugin:
         logger.debug("Getting settings info")
         data_perf = await self.get_settings(self)
         name = re.sub(r"[^a-zA-Z0-9]","",str(data_game.get("name")))
-        filename = f'{name}_{data_game.get("id")}'
+        filename = f'{name}_{data_game.get("id")}.json'
         file = None
         try:
             logger.debug("Trying to create file")
             if not os.path.exists(info_preset.get("location")+filename):
-                open(info_preset.get("location")+filename+".json", 'x')
-            with open(info_preset.get("location")+filename+".json", 'a') as file:
+                open(info_preset.get("location")+filename, 'x')
+            with open(info_preset.get("location")+filename, 'w') as file:
                 tofile = { "preset": { "game": "", "settings": ""}}
                 tofile["preset"]["game"] = data_game
                 tofile["preset"]["settings"] = data_perf
                 file.write(json.dumps(tofile, indent=4))
                 logger.debug(f"Created a preset file for: {filename}")
-        except FileExistsError:
-            logger.error(f"Attempted to create already existing file, {sys.exc_info()}")
+        # except FileExistsError:
+        #     logger.error(f"Attempted to create already existing file, {sys.exc_info()}")
         except OSError:
             logger.error(f"COULD NOT CREATE FILE, {sys.exc_info()}")
         except:
             logger.error(f"AN ERROR OCCURED, {sys.exc_info()}")
         finally:
-            logger.info(f"Attempted to create a preset file for: {filename}")
-    
-                    # registry = json.load(open(self.preset_registry))
-            # # presets = self._findfirstitem(registry, "presets")
-            # # logger.debug(registry)
-            # # logger.debug(type(registry))
+            logger.info(f"Attempted to create a preset file for: {filename}")    
+            # registry = json.load(open(self.preset_registry))
+            # presets = self._findfirstitem(registry, "presets")
+            # logger.debug(registry)
+            # logger.debug(type(registry))
             # with open(self.preset_registry, 'a') as file:
             #     file.write(json.dumps(data_game)+json.dumps(data_perf))
     async def load_preset(self):
