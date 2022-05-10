@@ -28,12 +28,13 @@
             });
         }
         
-        async function savePreset() {
+        async function savePresetButton() {
             return call_plugin_method("save_preset", {});
         }
 
-        async function loadPreset() {
-            console.log("Attempted to load a preset!")
+        async function loadPresetButton() {
+            console.log("Loading preset")
+            return call_plugin_method("open_filepicker", {});
         }
 
         //Non-python
@@ -41,7 +42,7 @@
             document.getElementById("actsetdisplay").innerHTML = 
                                         await prettySettings(await getSettings());
         }
-        
+
         async function showCurrentGame() {
             info = await getGame();
             if (info.id == "0") {
@@ -51,6 +52,11 @@
                 document.getElementById("actgamedisplay").innerHTML = info.name.toString() + ": " + info.id.toString();
             }
         }
+
+        // async function showPresetButtons(json) {
+        //     presets = JSON.parse(await call_plugin_method("get_presets", {}));
+        //     document.getElementById("actsavedpresets").innerHTML = presets;
+        // }
 
         async function autoPopulate() {
             await showCurrentSettings();
@@ -76,7 +82,7 @@
                 <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
                     style="--indent-level:0;">
                     <div class="gamepaddialog_FieldChildren_2rhav">
-                        <button type="button" onclick="savePreset()"
+                        <button type="button" onclick="savePresetButton()"
                             class="DialogButton _DialogLayout Secondary gamepaddialog_Button_cXzBZ Focusable"
                             tabindex="0">
                             Save Settings
@@ -86,7 +92,7 @@
                 <div class="gamepaddialog_Field_eKmEX gamepaddialog_WithFirstRow_2bDqk gamepaddialog_InlineWrapShiftsChildrenBelow_3LCXh gamepaddialog_WithBottomSeparator_3YKpU gamepaddialog_ExtraPaddingOnChildrenBelow_3nLNL gamepaddialog_StandardPadding_xIITX gamepaddialog_HighlightOnFocus_2HFrm Panel Focusable"
                     style="--indent-level:0;">
                     <div class="gamepaddialog_FieldChildren_2rhav">
-                        <button type="button" onclick="loadPreset()"
+                        <button type="button" onclick="loadPresetButton()"
                             class="DialogButton _DialogLayout Secondary gamepaddialog_Button_cXzBZ Focusable"
                             tabindex="0">
                             Load Settings

@@ -1,3 +1,4 @@
+from concurrent.futures import process
 import sys,os
 import logging,traceback,shutil,subprocess
 import re,json
@@ -53,7 +54,7 @@ class Plugin:
             # logger.debug("Item found, " + str(key) + " " + str(obj[key]))
             return obj[key]
         for k, v in obj.items():
-            logger.debug("K: " + str(k))
+            # logger.debug("K: " + str(k))
             if isinstance(v,dict):
                 # logger.debug("Dict Item: " + str(v))
                 item = self._findfirstitem(self, v, key)
@@ -72,7 +73,7 @@ class Plugin:
         data = None
         with open(vdfile, "rt") as file:
             data = file.read()
-        logger.debug("Loading VDF Config. Protecting original file from changes.")
+        # logger.debug("Loading VDF Config. Protecting original file from changes.")
         vdf_obj = vdf.loads(data, mapper=vdf.VDFDict)
         return vdf_obj
     
@@ -105,14 +106,30 @@ class Plugin:
     
     # format settings for display
     async def pretty_settings(self, obj):
-        logger.debug("Prettying up: " + str(obj))
+        # logger.debug("Prettying up: " + str(obj))
         out = ""
         for k,v in obj.items():
             out += str(k) + " " + str(v) + "<br>"
         return out
  
+    async def open_filepicker(self):
+        from subprocess import PIPE, STDOUT, CalledProcessError
+        zenity = subprocess.Popen(["DISPLAY=:0", "zenity", "--file-selection"], cwd="/home/deck/homebrew/plugins/PerfPresets/", shell=True, stdout=PIPE, stderr=STDOUT)
+        # outs,errs = zenity.communicate(timeout=15)
+        with zenity.stdout:
+            try:
+                for line in iter(zenity.stdout.readline, b''):
+                    logger.debug(line.decode("utf-8").strip())
+            except CalledProcessError as e:
+                logger.debug(f"{str(e)}")
+ 
     async def get_presets(self):
-        avaliable_presets = json.load(open(Plugin.preset_registry))
+        for k,v in open(Plugin.preset_registry).read():
+            if k == "apps":
+                for app in k:
+                    pass
+        return json.dumps()
+        # return avaliable_presets
  
     async def save_preset(self):
         logger.debug("Starting to save preset")
@@ -152,7 +169,7 @@ class Plugin:
             logger.error(f"AN ERROR OCCURED, {sys.exc_info()}")
         # finally:
         #     logger.info(f"Attempted to create a preset file for: {filename}")
-            
+    
     async def load_preset(self):
         pass
    
