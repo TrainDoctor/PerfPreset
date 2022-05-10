@@ -76,28 +76,6 @@ class Plugin:
         vdf_obj = vdf.loads(data, mapper=vdf.VDFDict)
         return vdf_obj
     
-    async def zenityid(self, mode, id=-1):
-        filepath = info_preset.get("location")+"scid"
-        if mode == "create":
-            if not os.path.exists(filepath):
-                open(filepath, 'x')
-                with open(filepath, 'w') as file:
-                    file.write(str(id))
-            else:
-                logger.debug("Could not write over existing scid file.")
-        if mode == "exists":
-            if os.path.exists(filepath):
-                return True
-            else:
-                return False
-        if mode == "get":
-            if not os.path.exists(filepath):
-                logger.error("Shortcut ID file does not exist.")
-            else:
-                with open(filepath) as file:
-                    line = file.readline().rstrip()
-                    return line
-    
     # get the name and app id of currently running game
     async def get_game(self):
         obj = await self.get_vdf(self, Plugin.steam_registry)
@@ -160,8 +138,8 @@ class Plugin:
                 try:
                     registry = json.load(open(self.preset_registry))
                     registry["presets"]["apps"].append(name+"_"+id)
-                    logger.debug(registry)
-                    logger.debug(type(registry))
+                    # logger.debug(registry)
+                    # logger.debug(type(registry))
                     with open(self.preset_registry, 'w') as file:
                         file.write(json.dumps(registry, indent=4))
                 except:

@@ -34,48 +34,9 @@
 
         async function loadPreset() {
             console.log("Attempted to load a preset!")
-            console.log("Attempting to run Zenity")
-            let scid = await call_plugin_method("zenityid", {"mode": "get"});
-            console.log(scid)
-            let gameid = await getGameID(scid);
-            // let gameid = await ap(`GetAppOverviewByAppID(${scid})`)
-            console.log(gameid)
-            sc(`Apps.RunGame("${gameid}","",-1,100)`);
         }
 
         //Non-python
-        async function sc(action) {
-            return execute_in_tab("SP", true, `SteamClient.${action}`);
-        }
-
-        async function getGameID(shortcutid) {
-            let game = (await execute_in_tab("SP", true, `
-                    async function get_gameid() {
-                        let res = await appStore.GetAppOverviewByAppID(${shortcutid})
-                        return JSON.stringify(res)
-                    }
-                    
-                    get_gameid()
-            `)).result;
-            if (game != "null") {
-                game = JSON.parse(game);
-                return game.m_gameid;
-            } else {
-                return -1
-            }
-        }
-
-        async function createZenityShortcut() {
-            let exists = await call_plugin_method("zenityid", { "mode": "exists"});
-            if (!exists) {
-                let id = (await sc('Apps.AddShortcut("Zenity","/usr/bin/zenity")')).result;
-                logfile = "/home/deck/.config/pluginloader/perfpresets/zenity.log"
-                call_plugin_method("zenityid", {"mode":"create", "id": id});
-                sc(`Apps.SetShortcutLaunchOptions(${id}, "--file-selection | ${logfile}")`);
-            }
-            else console.log("Zenity Shortcut already exists.")
-        }
-
         async function showCurrentSettings() {
             document.getElementById("actsetdisplay").innerHTML = 
                                         await prettySettings(await getSettings());
@@ -95,8 +56,6 @@
             await showCurrentSettings();
             await showCurrentGame();
         }
-
-        createZenityShortcut();
 
         window.setInterval('autoPopulate()', 500);
     </script>
