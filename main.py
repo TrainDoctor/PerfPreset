@@ -54,7 +54,7 @@ class Plugin:
             # logger.debug("Item found, " + str(key) + " " + str(obj[key]))
             return obj[key]
         for k, v in obj.items():
-            # logger.debug("K: " + str(k))
+            logger.debug("K: " + str(k))
             if isinstance(v,dict):
                 # logger.debug("Dict Item: " + str(v))
                 item = self._findfirstitem(self, v, key)
@@ -114,7 +114,10 @@ class Plugin:
  
     async def open_filepicker(self):
         from subprocess import PIPE, STDOUT, CalledProcessError
-        zenity = subprocess.Popen(["DISPLAY=:0", "zenity", "--file-selection"], cwd="/home/deck/homebrew/plugins/PerfPresets/", shell=True, stdout=PIPE, stderr=STDOUT)
+        zenity = subprocess.Popen(
+                ["DISPLAY=:0", "zenity", "--file-selection"], 
+                cwd="/home/deck/homebrew/plugins/PerfPresets/", 
+                shell=True, stdout=PIPE, stderr=STDOUT)
         # outs,errs = zenity.communicate(timeout=15)
         with zenity.stdout:
             try:
