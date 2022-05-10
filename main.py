@@ -10,7 +10,7 @@ logging.basicConfig(filename="/home/deck/.config/pluginloader/perfpresets/perfpr
 					filemode='w',
                     force=True)
 logger=logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 def log_except_hook(*exc_info):
     text = "".join(traceback.format_exception(*exc_info()))
@@ -50,7 +50,7 @@ class Plugin:
     # recursively search through vdf to find a key and it's value
     def _findfirstitem(self, obj, key):
         if key in obj: 
-            logger.debug("Item found, " + str(key) + " " + str(obj[key]))
+            # logger.debug("Item found, " + str(key) + " " + str(obj[key]))
             return obj[key]
         for k, v in obj.items():
             logger.debug("K: " + str(k))
@@ -76,17 +76,39 @@ class Plugin:
         vdf_obj = vdf.loads(data, mapper=vdf.VDFDict)
         return vdf_obj
     
+    async def zenityid(self, mode, id=-1):
+        filepath = info_preset.get("location")+"scid"
+        if mode == "create":
+            if not os.path.exists(filepath):
+                open(filepath, 'x')
+                with open(filepath, 'w') as file:
+                    file.write(str(id))
+            else:
+                logger.debug("Could not write over existing scid file.")
+        if mode == "exists":
+            if os.path.exists(filepath):
+                return True
+            else:
+                return False
+        if mode == "get":
+            if not os.path.exists(filepath):
+                logger.error("Shortcut ID file does not exist.")
+            else:
+                with open(filepath) as file:
+                    line = file.readline().rstrip()
+                    return line
+    
     # get the name and app id of currently running game
     async def get_game(self):
         obj = await self.get_vdf(self, Plugin.steam_registry)
         id = self._findfirstitem(self, obj, key="RunningAppID")
         out = { "name" :  "",
                 "id" : ""}
-        # TODO: incorporate language detection for smarter name cleanup
-        # lang = self._finditem(self, obj, key="language")
         if str(id) == "0":
             out["name"] = "Unknown/Unsupported Program"
             out["id"] = str(id)
+        # TODO: incorporate language detection for smarter name cleanup
+        # lang = self._finditem(self, obj, key="language")
         else:
             name = self._findfirstitem(self, obj, key=str(id))
             # TODO: account for UTF-8 characters properly
