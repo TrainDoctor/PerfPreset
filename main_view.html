@@ -7,7 +7,7 @@
     <script src="/static/library.js"></script>
     <script>
         async function executeInSP(action) {
-                return execute_in_tab("SP", true, `${action}`);
+                return execute_in_tab("SP", true, action);
         }
 
         // const orig = call_plugin_method;
@@ -17,8 +17,13 @@
         //     console.log("returned", ret);
         //     return ret
         // }
+
         executeInSP(
-               `const wpRequire = webpackJsonp.push([[], { get_require: (mod, _exports, wpRequire) => mod.exports = wpRequire }, [["get_require"]]]);
+               `
+               async function executeInQAM(action) {
+                return execute_in_tab("QAM", true, action);
+               }
+               const wpRequire = webpackJsonp.push([[], { get_require: (mod, _exports, wpRequire) => mod.exports = wpRequire }, [["get_require"]]]);
                 const all = () => Object.keys(wpRequire.c).map((x) => wpRequire.c[x].exports).filter((x) => x);
                 const CommonUI = all().find(m => {
                     if (typeof m !== "object") return false;
@@ -46,15 +51,12 @@
         console.log("executed elements needed for modals!")
 
         // Python Functions
-        //file is a filepath including suffix to the location of a vdf file
-        // function getVDF(file) {
-        //     return call_plugin_method("get_vdf", {
-        //         "file": file
-        //     });
-        // }
-
         async function getGame() {
             return call_plugin_method("get_game", {});
+        }
+        
+        async function getPresets() {
+            return call_plugin_method("get_presets", {});
         }
 
         async function getSettings() {
@@ -71,17 +73,26 @@
             return call_plugin_method("save_preset", {});
         }
 
+        async function loadPreset(filename) {
+                return call_plugin_method("load_preset", {"filename": filename});
+        }
+
         async function loadPresetButton() {
             console.log("Loading preset");
-            let presets = ["1", "2", "3"]
-            console.log(presets[0])
+            // let temp = await getPresets();
+            // console.log(temp)
+            let presets = await getPresets();
+            // console.log(presets[0])
             action = `
-                presetEntries = [${presets}];
-                showModal(SP_REACT.createElement(ModalRoot, {}, SP_REACT.createElement("div", null, 
-                    presetEntries.map(item => SP_REACT.createElement(Button, null, item)))), window);
-                `
-            console.log(action);
-            await executeInSP(action);
+                new Promise(async (resolve, reject) => {
+                presetEntries = [${ presets.map(preset => `"${preset}"`) }];
+                const modal = await showModal(SP_REACT.createElement(ModalRoot, {}, SP_REACT.createElement("div", null,
+                    presetEntries.map(item => SP_REACT.createElement(Button, { onClick: () => {resolve(item); modal.Close();} }, item)))), window);
+            })`
+            // console.log(action);
+            const out = await executeInSP(action);
+            console.log(out.result);
+            loadPreset(out.result);
         }
 
         //Non-python

@@ -1,4 +1,3 @@
-from concurrent.futures import process
 import sys,os
 import logging,traceback,shutil,subprocess
 import re,json
@@ -77,6 +76,17 @@ class Plugin:
         vdf_obj = vdf.loads(data, mapper=vdf.VDFDict)
         return vdf_obj
     
+    async def write_perf(self, obj=vdf.VDFDict):
+        logger.debug(f"obj: {str(obj)}")
+        config = self.steam_config
+        shutil.copy2(config, config+".temp")
+        if not os.path.exists(config+".bak"):
+            # if so, make a copy
+            shutil.copy2(config, config+".bak")
+        with open(config+".temp", "wt") as file:
+            file.write(obj)
+            pass
+    
     # get the name and app id of currently running game
     async def get_game(self):
         obj = await self.get_vdf(self, Plugin.steam_registry)
@@ -113,14 +123,10 @@ class Plugin:
         return out
  
     async def get_presets(self):
-        for k,v in open(Plugin.preset_registry).read():
-            # if k == "apps":
-            logger.debug(str(k)+str(v))
-                # return v
-                # for app in k:
-                #     
-                #     pass
-        return json.dumps()
+        with open(Plugin.preset_registry, "rt") as file:
+            presets = json.load(file)
+            # logger.debug(json.dumps(presets, indent=4))
+            return self._findfirstitem(self, presets, "apps")
  
     async def save_preset(self):
         logger.debug("Starting to save preset")
@@ -161,9 +167,37 @@ class Plugin:
         # finally:
         #     logger.info(f"Attempted to create a preset file for: {filename}")
     
-    async def load_preset(self):
-        pass
-   
+    async def load_preset(self, filename):
+        logger.debug(str(filename))
+        filepath = info_preset["location"]+str(filename)+".json"
+        logger.debug(f"filepath: {filepath}")
+        settings = None
+        with open(filepath, 'rt') as file:
+            fileobj = json.load(file)
+            settings = Plugin._findfirstitem(self, fileobj, "settings")
+            logger.debug(f"settings: {settings}")
+        vdfile = await self.get_vdf(self, Plugin.steam_config)
+        perf = vdfile["InstallConfigStore"]["Software"]["Valve"]["Steam"]["perf"]
+        logger.debug(f"perf from vdfile: {perf}")
+        referenceArray = []
+        for perfkey in perf:
+            # logger.debug(f"referenceArray: {str(referenceArray)}")
+            for key in settings:
+                if perfkey == key and key not in referenceArray:
+                    if perf[perfkey] != settings[key]:
+                        referenceArray.append(str(key))
+                        logger.debug(f"before\tperfkey: {perfkey} = {perf[perfkey]}, key: {key} = {settings[key]}")
+                        vdfile["InstallConfigStore"]["Software"]["Valve"]["Steam"]["perf"][perfkey] = int(settings[key])
+                        # perf = self._findfirstitem(self, vdfile, key="perf")
+                        logger.debug(f"after\tperfkey: {perfkey} = {perf[perfkey]}")
+                    else:
+                        continue
+                else:
+                    continue
+        # vdfile["perf"] = perf
+        # logger.debug(f"vdfile: {vdfile}")
+        # self.write_perf(vdfile)
+
     async def _main(self):
         # establish config filepath
         config = self.steam_config
