@@ -54,7 +54,7 @@ class Plugin:
             # logger.debug("Item found, " + str(key) + " " + str(obj[key]))
             return obj[key]
         for k, v in obj.items():
-            logger.debug("K: " + str(k))
+            # logger.debug("K: " + str(k))
             if isinstance(v,dict):
                 # logger.debug("Dict Item: " + str(v))
                 item = self._findfirstitem(self, v, key)
@@ -112,27 +112,15 @@ class Plugin:
             out += str(k) + " " + str(v) + "<br>"
         return out
  
-    async def open_filepicker(self):
-        from subprocess import PIPE, STDOUT, CalledProcessError
-        zenity = subprocess.Popen(
-                ["DISPLAY=:0", "zenity", "--file-selection"], 
-                cwd="/home/deck/homebrew/plugins/PerfPresets/", 
-                shell=True, stdout=PIPE, stderr=STDOUT)
-        # outs,errs = zenity.communicate(timeout=15)
-        with zenity.stdout:
-            try:
-                for line in iter(zenity.stdout.readline, b''):
-                    logger.debug(line.decode("utf-8").strip())
-            except CalledProcessError as e:
-                logger.debug(f"{str(e)}")
- 
     async def get_presets(self):
         for k,v in open(Plugin.preset_registry).read():
-            if k == "apps":
-                for app in k:
-                    pass
+            # if k == "apps":
+            logger.debug(str(k)+str(v))
+                # return v
+                # for app in k:
+                #     
+                #     pass
         return json.dumps()
-        # return avaliable_presets
  
     async def save_preset(self):
         logger.debug("Starting to save preset")

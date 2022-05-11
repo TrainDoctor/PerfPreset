@@ -6,6 +6,45 @@
     <link rel="stylesheet" href="/steam_resource/css/library.css">
     <script src="/static/library.js"></script>
     <script>
+        async function executeInSP(action) {
+                return execute_in_tab("SP", true, `${action}`);
+        }
+
+        // const orig = call_plugin_method;
+        // call_plugin_method = (...args) => {
+        //     console.log("calling method", args);
+        //     const ret = orig(...args);
+        //     console.log("returned", ret);
+        //     return ret
+        // }
+        executeInSP(
+               `const wpRequire = webpackJsonp.push([[], { get_require: (mod, _exports, wpRequire) => mod.exports = wpRequire }, [["get_require"]]]);
+                const all = () => Object.keys(wpRequire.c).map((x) => wpRequire.c[x].exports).filter((x) => x);
+                const CommonUI = all().find(m => {
+                    if (typeof m !== "object") return false;
+                    let amountFound = 0;
+                    for (let prop in m) {
+                        const str = m[prop]?.render?.toString() || m[prop]?.toString();
+                        if (str) {
+                            if (str.includes("#Login_ShowPassword")) amountFound++;
+                            if (str.includes("bCenterVertically")) amountFound++;
+                            if (str.includes("spacingBetweenLabelAndChild:")) amountFound++;
+                        }
+                    }
+                    if (amountFound >= 3) return true
+                })
+                const showModal = all().map(m => {
+                        if (typeof m !== "object") return undefined;
+                        for (let prop in m) { let str = m[prop]?.toString(); if (str && str.includes(")(this,void 0,void 0,(function*()") && str.includes("),{bHideMainWindowForPopouts:!0")) return m[prop] }
+                    }).find(x => x)
+                const ModalRoot = all().map(m => {
+                        if (typeof m !== "object") return undefined;
+                        for (let prop in m) { if (m[prop]?.prototype?.OK && m[prop]?.prototype?.Cancel && m[prop]?.prototype?.render) return m[prop] }
+                    }).find(x => x)
+                const Button = Object.values(CommonUI).find(x => x?.render?.toString()?.includes('Object.assign({type:"button"') && x?.render?.toString()?.includes('DialogButton'))`
+        );
+        console.log("executed elements needed for modals!")
+
         // Python Functions
         //file is a filepath including suffix to the location of a vdf file
         // function getVDF(file) {
@@ -33,8 +72,16 @@
         }
 
         async function loadPresetButton() {
-            console.log("Loading preset")
-            return call_plugin_method("open_filepicker", {});
+            console.log("Loading preset");
+            let presets = ["1", "2", "3"]
+            console.log(presets[0])
+            action = `
+                presetEntries = [${presets}];
+                showModal(SP_REACT.createElement(ModalRoot, {}, SP_REACT.createElement("div", null, 
+                    presetEntries.map(item => SP_REACT.createElement(Button, null, item)))), window);
+                `
+            console.log(action);
+            await executeInSP(action);
         }
 
         //Non-python
@@ -107,7 +154,7 @@
                         </div>
                     </div>
                 </div>
-                <div id="actsetdisplay"></div>
+                <div id="actsetdisplay">Placeholder Settings</div>
             </div>
         </div>
     </div>
