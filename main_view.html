@@ -6,8 +6,23 @@
     <link rel="stylesheet" href="/steam_resource/css/library.css">
     <script src="/static/library.js"></script>
     <script>
-        async function executeInSP(action) {
-                return execute_in_tab("SP", true, action);
+        //* utility functions *//
+
+        //TODO: give me a description
+        async function executeInSP(action, async=true) {
+                return execute_in_tab("SP", async, action);
+        }
+
+        //TODO: give me a description
+        async function sendToPython(obj) {
+            return call_plugin_method("_getfromjs", { "obj":obj })
+        }
+
+        //TODO: give me a description
+        async function prettySettings(obj) {
+            return call_plugin_method("pretty_settings", {
+                "obj": obj
+            });
         }
 
         // const orig = call_plugin_method;
@@ -18,6 +33,9 @@
         //     return ret
         // }
 
+
+        //* setup for modals needed for selecting presets *//
+        
         executeInSP(
                `
                async function executeInQAM(action) {
@@ -46,79 +64,120 @@
                         if (typeof m !== "object") return undefined;
                         for (let prop in m) { if (m[prop]?.prototype?.OK && m[prop]?.prototype?.Cancel && m[prop]?.prototype?.render) return m[prop] }
                     }).find(x => x)
-                const Button = Object.values(CommonUI).find(x => x?.render?.toString()?.includes('Object.assign({type:"button"') && x?.render?.toString()?.includes('DialogButton'))`
+                const Button = Object.values(CommonUI).find(x => x?.render?.toString()?.includes('Object.assign({type:"button"') && x?.render?.toString()?.includes('DialogButton'))
+                const PerformanceData = all().map(m => {
+                    if (typeof m !== "object") return undefined;
+                    for (let prop in m) { if (m[prop]?.MBF && m[prop]?.prototype?.add_gpu_performance_levels_available) return m[prop]}}).find(x => x)
+                `
         );
         console.log("executed elements needed for modals!")
 
-        // Python Functions
+
+        //* information collection *//
+
+        // get currently active game
         async function getGame() {
             return call_plugin_method("get_game", {});
         }
-        
-        async function getPresets() {
+
+        // grab currently active performance settings from SteamClient
+        async function getSettings() {
+            return JSON.parse((await executeInSP(`JSON.stringify(SystemStoragStore.msgSettings.Value)`)).result);
+        }
+
+        // get presets present in registry
+        async function getAllPresets() {
             return call_plugin_method("get_presets", {});
         }
 
-        async function getSettings() {
-            return call_plugin_method("get_settings", {});
-        }
 
-        async function prettySettings(obj) {
-            return call_plugin_method("pretty_settings", {
-                "obj": obj
-            });
-        }
-        
-        async function savePresetButton() {
+        //* preset related functions *//
+
+        // save preset to file, called by savePresetButton()
+        // TODO: seperate saving presets into saving and updating registry?
+        async function savePreset() {
             return call_plugin_method("save_preset", {});
         }
 
-        async function loadPreset(filename) {
-                return call_plugin_method("load_preset", {"filename": filename});
+        // retrieve preset contents from file
+        async function retreivePreset(filename) {
+            return call_plugin_method("get_preset", { "filename": filename });
         }
 
-        async function loadPresetButton() {
+        // load a preset from file, called by loadPresetButton()
+        async function loadPreset() {
+            // SteamClient.System.Perf.UpdateSettings(that.serializeBase64String())
             console.log("Loading preset");
             // let temp = await getPresets();
             // console.log(temp)
-            let presets = await getPresets();
+
+            // first: retrieve preset names from registry
+            let presets = await getAllPresets();
             // console.log(presets[0])
-            action = `
+            
+            action =
+                `
                 new Promise(async (resolve, reject) => {
-                presetEntries = [${ presets.map(preset => `"${preset}"`) }];
+                presetEntries = [${presets.map(preset => `"${preset}"`)}];
                 const modal = await showModal(SP_REACT.createElement(ModalRoot, {}, SP_REACT.createElement("div", null,
-                    presetEntries.map(item => SP_REACT.createElement(Button, { onClick: () => {resolve(item); modal.Close();} }, item)))), window);
-            })`
+                    presetEntries.map(item => SP_REACT.createElement(Button, { onClick: () => {resolve(item); modal.Close();} }, item)))), window);})
+                `
             // console.log(action);
+
+            // second: prompt what preset to select using
             const out = await executeInSP(action);
             console.log(out.result);
-            loadPreset(out.result);
+            // loadJSONPreset(out.result);
+
+            // third: get currently active settings
+            let values = await getSettings()
+            console.log(values)
+
+            // fourth: get preset to be loaded from python
+            let setvalues = await retreivePreset(out.result);
+            // console.log(setvalues);
+            console.log(setvalues["preset"]["settings"]);
+
+            // fifth: change active settings to values
         }
 
-        //Non-python
+
+        //* display related functions *//
+
+        // update current settings info
         async function showCurrentSettings() {
-            document.getElementById("actsetdisplay").innerHTML = 
-                                        await prettySettings(await getSettings());
+            document.getElementById("actsetdisplay").innerHTML =
+            await prettySettings(await getSettings());
         }
-
+        
+        // update current game info
         async function showCurrentGame() {
             info = await getGame();
             if (info.id == "0") {
-                document.getElementById("actgamedisplay").innerHTML = info.name + "<br>"+ info.id;
-            } 
+                document.getElementById("actgamedisplay").innerHTML = info.name + "<br>" + info.id;
+            }
             else {
                 document.getElementById("actgamedisplay").innerHTML = info.name.toString() + ": " + info.id.toString();
             }
         }
 
-        // async function showPresetButtons(json) {
-        //     presets = JSON.parse(await call_plugin_method("get_presets", {}));
-        //     document.getElementById("actsavedpresets").innerHTML = presets;
-        // }
-
+        // automatically populate game info and settings
         async function autoPopulate() {
             await showCurrentSettings();
             await showCurrentGame();
+        }
+
+
+        //* button related functions *//
+
+        // called by onclick of save button
+        async function savePresetButton() {
+            await savePreset();
+        }
+
+        // called by onclick of Load button
+        async function loadPresetButton() {
+            await loadPreset();
         }
 
         window.setInterval('autoPopulate()', 500);

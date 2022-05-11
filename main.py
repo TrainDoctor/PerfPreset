@@ -43,9 +43,9 @@ info_steam =    {   "locationlocal" : "/home/deck/.local/share/Steam",
 
 class Plugin:
 
-    preset_registry = info_preset.get("location")+info_preset.get("filename")
-    steam_config = info_steam.get("locationlocal")+info_steam.get("configpath")
-    steam_registry = info_steam.get("locationregistry")+info_steam.get("registryname")
+    preset_registry = info_preset["location"]+info_preset["filename"]
+    steam_config = info_steam["locationlocal"]+info_steam["configpath"]
+    steam_registry = info_steam["locationregistry"]+info_steam["registryname"]
     
     # recursively search through vdf to find a key and it's value
     def _findfirstitem(self, obj, key):
@@ -65,6 +65,9 @@ class Plugin:
                     item = self._findfirstitem(self, list_item, key)
                     if item is not None:
                         return item
+    
+    async def _getfromjs(self, obj):
+        return obj
     
     # return a VDFDict object of a .vdf file
     async def get_vdf(self, vdfile) -> vdf.VDFDict:
@@ -128,7 +131,12 @@ class Plugin:
             # logger.debug(json.dumps(presets, indent=4))
             return self._findfirstitem(self, presets, "apps")
  
-    async def save_preset(self):
+    async def get_preset(self, filename):
+        with open(info_preset["location"]+filename+".json", "rt") as file:
+            return json.load(file)
+    
+    # 
+    async def save_preset(self, obj):
         logger.debug("Starting to save preset")
         logger.debug("Getting game info")
         data_game = await self.get_game(self)
@@ -176,27 +184,11 @@ class Plugin:
             fileobj = json.load(file)
             settings = Plugin._findfirstitem(self, fileobj, "settings")
             logger.debug(f"settings: {settings}")
+        # vdfile = VDFDict
         vdfile = await self.get_vdf(self, Plugin.steam_config)
         perf = vdfile["InstallConfigStore"]["Software"]["Valve"]["Steam"]["perf"]
         logger.debug(f"perf from vdfile: {perf}")
-        referenceArray = []
-        for perfkey in perf:
-            # logger.debug(f"referenceArray: {str(referenceArray)}")
-            for key in settings:
-                if perfkey == key and key not in referenceArray:
-                    if perf[perfkey] != settings[key]:
-                        referenceArray.append(str(key))
-                        logger.debug(f"before\tperfkey: {perfkey} = {perf[perfkey]}, key: {key} = {settings[key]}")
-                        vdfile["InstallConfigStore"]["Software"]["Valve"]["Steam"]["perf"][perfkey] = int(settings[key])
-                        # perf = self._findfirstitem(self, vdfile, key="perf")
-                        logger.debug(f"after\tperfkey: {perfkey} = {perf[perfkey]}")
-                    else:
-                        continue
-                else:
-                    continue
-        # vdfile["perf"] = perf
-        # logger.debug(f"vdfile: {vdfile}")
-        # self.write_perf(vdfile)
+        
 
     async def _main(self):
         # establish config filepath
