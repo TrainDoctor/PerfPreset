@@ -1,4 +1,8 @@
-# Plugin-Template
+# PerfPresets
+
+## THIS PROJECT IS NOW ARCHIVED.  
+#### THE DAY I FINALIZE IS THEY DAY VALVE DOES THEIR IMPLEMENTATION.  
+#### DEFINITELY NOT MAD OR ANYTHING
 
 This is the template plugin for developing plugins for the [SteamOS Plugin Loader](https://github.com/SteamDeckHomebrew/PluginLoader).
 
